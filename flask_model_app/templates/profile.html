@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ mbti_type }} - {{ profile['Title'] }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='quiz.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="profile-header">
+            <h1>{{ mbti_type }}</h1>
+            <h2>{{ profile['Title'] }}</h2>
+        </div>
+        
+        <div class="profile-content">
+            <div class="profile-section main-description">
+                <h3>🌟 Overview</h3>
+                <p>{{ profile['Description'] }}</p>
+            </div>
+            
+            <div class="profile-grid">
+                <div class="profile-section">
+                    <h3>🎯 Behavior</h3>
+                    <p>{{ profile['Behavior'] }}</p>
+                </div>
+                
+                <div class="profile-section">
+                    <h3>💪 Strengths</h3>
+                    <p>{{ profile['Strengths'] }}</p>
+                </div>
+                
+                <div class="profile-section">
+                    <h3>🚀 Good At</h3>
+                    <p>{{ profile['Good At'] }}</p>
+                </div>
+                
+                <div class="profile-section">
+                    <h3>🎯 Seeks In Life</h3>
+                    <p>{{ profile['Seeks In Life'] }}</p>
+                </div>
+                
+                <div class="profile-section">
+                    <h3>💕 Best Matches</h3>
+                    <p>{{ profile['Best Matches'] }}</p>
+                </div>
+                
+                <div class="profile-section">
+                    <h3>🧠 Cognitive Functions</h3>
+                    <p>{{ profile['Cognitive Functions'] }}</p>
+                </div>
+                
+                <div class="profile-section growth">
+                    <h3>🌱 Growth Path</h3>
+                    <p>{{ profile['Growth Path'] }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="profile-actions">
+            <a href="/quiz" class="btn btn-primary">Take Quiz Again</a>
+            <a href="/" class="btn btn-primary">Home</a>
+        </div>
+    </div>
+</body>
+</html>

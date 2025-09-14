@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>MBTI Questionnaire</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='quiz.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>MBTI Questionnaire</h1>
+        
+        <div id="userInfo">
+            <h3>Please enter your details:</h3>
+            <div class="user-form">
+                <input type="text" id="userName" placeholder="Your Name" required>
+                <input type="email" id="userEmail" placeholder="Your Email" required>
+                <button class="btn btn-primary" onclick="startQuiz()">Start Quiz</button>
+            </div>
+        </div>
+        
+        <div id="quizSection" class="quiz-section">
+            <div id="question" class="question"></div>
+            <div class="options">
+                <button id="btnA" class="option-btn">Option A</button>
+                <button id="btnB" class="option-btn">Option B</button>
+            </div>
+        </div>
+        
+        <div id="result" class="result"></div>
+    </div>
+
+    <script>
+        let questions = [];
+        let currentIndex = 0;
+        let scores = { "E": 0, "I": 0, "S": 0, "N": 0, "T": 0, "F": 0, "J": 0, "P": 0 };
+        let mbti = "";
+        let userName = "";
+        let userEmail = "";
+
+        function startQuiz() {
+            userName = document.getElementById('userName').value;
+            userEmail = document.getElementById('userEmail').value;
+            
+            if (!userName || !userEmail) {
+                alert('Please enter both name and email');
+                return;
+            }
+            
+            document.getElementById('userInfo').style.display = 'none';
+            document.getElementById('quizSection').style.display = 'block';
+            
+            fetch('/quiz_data')
+                .then(response => response.json())
+                .then(data => {
+                    questions = data.questions;
+                    showQuestion();
+                });
+        }
+
+        function showQuestion() {
+            if(currentIndex >= questions.length){
+                calculateResult();
+                return;
+            }
+            let q = questions[currentIndex];
+            document.getElementById('question').innerHTML = `<strong>Q${currentIndex + 1}:</strong> ${q.Question}`;
+            document.getElementById('btnA').innerText = q["Option A"];
+            document.getElementById('btnB').innerText = q["Option B"];
+        }
+
+        function choose(option) {
+            let q = questions[currentIndex];
+            let selected_trait = option === 'A' ? q["Option A Trait"] : q["Option B Trait"];
+            scores[selected_trait] += 1;
+            currentIndex++;
+            showQuestion();
+        }
+
+        function calculateResult() {
+            mbti += scores["E"] >= scores["I"] ? "E" : "I";
+            mbti += scores["S"] >= scores["N"] ? "S" : "N";
+            mbti += scores["T"] >= scores["F"] ? "T" : "F";
+            mbti += scores["J"] >= scores["P"] ? "J" : "P";
+
+            document.getElementById('quizSection').style.display = 'none';
+            document.getElementById('result').innerHTML = `
+                🎉 ${userName}, your MBTI Type is <strong>${mbti}</strong><br><br>
+                <a href="/profile/${mbti}" class="btn btn-primary">Know Your Type</a>
+            `;
+            
+            // Save result to server
+            fetch('/save_quiz_result', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: userName,
+                    email: userEmail,
+                    mbti: mbti
+                })
+            });
+        }
+
+        document.getElementById('btnA').addEventListener('click', () => choose('A'));
+        document.getElementById('btnB').addEventListener('click', () => choose('B'));
+    </script>
+</body>
+</html>

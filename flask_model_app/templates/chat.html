@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>MBTI AI Chatbot</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='quiz.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="chat-header">
+            <h1>🤖 MBTI AI Assistant</h1>
+            <p>Get personalized advice based on your personality type</p>
+        </div>
+
+        <div class="chat-controls">
+            <select id="mbti_type" class="mbti-select">
+                <option value="INFP">INFP - Mediator</option>
+                <option value="INFJ">INFJ - Advocate</option>
+                <option value="ENFP">ENFP - Campaigner</option>
+                <option value="ENFJ">ENFJ - Protagonist</option>
+                <option value="INTP">INTP - Logician</option>
+                <option value="INTJ">INTJ - Architect</option>
+                <option value="ENTP">ENTP - Debater</option>
+                <option value="ENTJ">ENTJ - Commander</option>
+                <option value="ISFP">ISFP - Adventurer</option>
+                <option value="ISTP">ISTP - Virtuoso</option>
+                <option value="ESFP">ESFP - Entertainer</option>
+                <option value="ESTP">ESTP - Entrepreneur</option>
+                <option value="ISFJ">ISFJ - Defender</option>
+                <option value="ISTJ">ISTJ - Logistician</option>
+                <option value="ESFJ">ESFJ - Consul</option>
+                <option value="ESTJ">ESTJ - Executive</option>
+            </select>
+        </div>
+
+        <div id="chat" class="chat-container"></div>
+
+        <div class="chat-input">
+            <input type="text" id="message" placeholder="Ask me anything about your personality type..." />
+            <button onclick="sendMessage()" class="btn btn-primary">Send</button>
+        </div>
+        
+        <div class="chat-actions">
+            <a href="/" class="btn btn-primary">Back to Home</a>
+        </div>
+    </div>
+
+    <script>
+        function sendMessage() {
+            const message = document.getElementById("message").value;
+            const mbti = document.getElementById("mbti_type").value;
+            if (!message.trim()) return;
+
+            const chat = document.getElementById("chat");
+            chat.innerHTML += `<div class="message user-message"><div class="message-content"><strong>You:</strong> ${message}</div></div>`;
+
+            fetch('/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: message, mbti: mbti })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.error){
+                    chat.innerHTML += `<div class="message error-message"><div class="message-content">${data.error}</div></div>`;
+                } else {
+                    chat.innerHTML += `<div class="message bot-message"><div class="message-content"><strong>🤖 AI:</strong> ${data.reply}</div></div>`;
+                }
+                chat.scrollTop = chat.scrollHeight;
+            });
+
+            document.getElementById("message").value = "";
+        }
+        
+        document.getElementById("message").addEventListener("keypress", function(e) {
+            if (e.key === "Enter") {
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>

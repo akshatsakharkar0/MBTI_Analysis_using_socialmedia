@@ -1,0 +1,7 @@
+transformers
+torch
+flask
+pandas
+numpy
+huggingface_hub
+python-dotenv

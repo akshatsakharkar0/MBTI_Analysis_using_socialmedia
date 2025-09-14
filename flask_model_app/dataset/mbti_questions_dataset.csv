@@ -1,0 +1,41 @@
+Dimension,Question,Option A,Option A Trait,Option B,Option B Trait
+E vs I,"After a long week, you prefer to:",Spend time alone or with a close friend,I,Go out with many people and enjoy a lively environment,E
+E vs I,"In social settings, you:",Observe and listen more than you speak,I,Initiate conversations and feel energized by interactions,E
+E vs I,You feel drained after:,Being in large groups for hours,I,Spending too much time alone,E
+E vs I,You prefer:,Deep one-on-one conversations,I,Group discussions or events,E
+E vs I,"When meeting new people, you:",Feel nervous and take time to open up,I,Feel excited and enjoy making new connections,E
+E vs I,"During free time, you:","Read, write, or engage in solitary hobbies",I,Explore outdoor activities or meet friends,E
+E vs I,"When planning an outing, you:",Prefer quiet and familiar places,I,Look for exciting and crowded events,E
+E vs I,Your ideal vacation involves:,A peaceful retreat,I,A bustling adventure with new experiences,E
+E vs I,You gain energy from:,Solitary reflection,I,Engaging with others,E
+E vs I,You are more comfortable when:,Keeping personal space,I,Being around others frequently,E
+S vs N,"When solving problems, you:",Rely on facts and proven methods,S,Explore creative ideas and abstract possibilities,N
+S vs N,You trust information that:,You can experience directly,S,Comes from theories and patterns,N
+S vs N,You prefer:,Step-by-step instructions,S,Discovering new methods,N
+S vs N,"When thinking about the future, you:",Focus on practical steps,S,Dream about possibilities,N
+S vs N,"In conversations, you:",Stick to real-world examples,S,Discuss ideas and theories,N
+S vs N,You feel most comfortable when:,You know exactly what to expect,S,Exploring something new,N
+S vs N,You learn best when:,Working with tangible tools,S,Exploring abstract concepts,N
+S vs N,You prefer hobbies that are:,Hands-on and practical,S,Imaginative and theoretical,N
+S vs N,You are drawn to subjects that:,"Have clear, observable outcomes",S,Encourage interpretation and ideas,N
+S vs N,You are more inspired by:,Details of the present,S,Patterns that hint at the future,N
+T vs F,"When making decisions, you:",Analyze facts and logic,T,Consider how it affects people,F
+T vs F,You prefer solutions that are:,Efficient and correct,T,Kind and considerate,F
+T vs F,"If giving feedback, you:",Focus on practical improvements,T,Offer support and encouragement,F
+T vs F,"When disagreeing, you:",State your opinion frankly,T,Avoid hurting feelings,F
+T vs F,You believe it’s more important to:,Solve problems effectively,T,Maintain harmony,F
+T vs F,"In stressful situations, you:",Analyze and plan,T,Seek emotional support,F
+T vs F,You are more likely to:,Focus on objectives,T,Focus on relationships,F
+T vs F,"When prioritizing, you:",Choose efficiency,T,Choose empathy,F
+T vs F,You handle conflicts by:,Being direct and logical,T,Being understanding and gentle,F
+T vs F,You are appreciated for:,Your objectivity,T,Your compassion,F
+J vs P,You prefer your days to be:,Planned and organized,J,Flexible and open to changes,P
+J vs P,You feel comfortable when:,You have schedules and deadlines,J,You can adapt as needed,P
+J vs P,"When working on projects, you:",Create lists and plan steps,J,Explore paths and adjust as needed,P
+J vs P,You are often:,Task-focused and finish early,J,Open to inspiration and change,P
+J vs P,You prefer:,Knowing tasks ahead of time,J,Going with the flow,P
+J vs P,Unexpected changes:,Stress you out,J,Excite you,P
+J vs P,You manage time by:,Following a routine,J,Allowing flexibility,P
+J vs P,Your workspace is:,Neat and structured,J,Creative and adaptable,P
+J vs P,You make decisions by:,Considering deadlines,J,Considering new opportunities,P
+J vs P,You are motivated by:,Structure and plans,J,Spontaneity and exploration,P

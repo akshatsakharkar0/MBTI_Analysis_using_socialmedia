@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>MBTI Personality Analysis</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='quiz.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="hero-section">
+            <h1>🧠 MBTI Personality Analysis</h1>
+            <p class="hero-subtitle">Discover your personality type through advanced AI analysis</p>
+            
+            <div class="hero-buttons">
+                <a href="/quiz" class="btn btn-primary btn-large">🎯 Know Your Personality</a>
+                <a href="/chat" class="btn btn-primary btn-large">🤖 Chat with AI Assistant</a>
+            </div>
+            <p class="hero-note">Solve all your problems by talking to our AI chatbot!</p>
+        </div>
+        
+        <div class="features">
+            <div class="feature">
+                <h3>📝 Interactive Quiz</h3>
+                <p>Take our comprehensive MBTI questionnaire to discover your personality type</p>
+            </div>
+            <div class="feature">
+                <h3>🤖 AI Text Analysis</h3>
+                <p>Get instant personality predictions from your writing style</p>
+            </div>
+            <div class="feature">
+                <h3>📊 Detailed Profiles</h3>
+                <p>Explore in-depth personality insights and growth recommendations</p>
+            </div>
+        </div>
+        
+        <div class="text-analysis">
+            <h2>Or Try AI Text Analysis</h2>
+            <form id="predict-form">
+                <input type="text" name="text_input" id="text_input" placeholder="Enter your text to analyze personality..." required />
+                <button type="submit" class="btn btn-primary">Analyze Text</button>
+            </form>
+            <div id="result"></div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('predict-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            let text = document.getElementById('text_input').value;
+
+            fetch('/predict', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'text_input=' + encodeURIComponent(text)
+            })
+            .then(response => response.json())
+            .then(data => {
+                let resultDiv = document.getElementById('result');
+                if(data.error){
+                    resultDiv.innerHTML = `<div class="error">${data.error}</div>`;
+                } else {
+                    let mbti = data.mbti;
+                    let details = data.details;
+                    let html = `<div class="prediction-result">`;
+                    html += `<h3>Prediction: ${mbti}</h3>`;
+                    html += `<div class="dimensions">`;
+                    ['EI', 'NS', 'FT', 'JP'].forEach(dim => {
+                        html += `<div class="dimension"><strong>${dim}</strong>: ${details[dim].prediction} (${details[dim].confidence}%)</div>`;
+                    });
+                    html += `</div>`;
+                    html += `<a href="/profile/${mbti}" class="btn btn-primary">View Full Profile</a>`;
+                    html += `</div>`;
+                    resultDiv.innerHTML = html;
+                }
+            })
+            .catch(err => {
+                document.getElementById('result').innerHTML = `<div class="error">Error: ${err}</div>`;
+            });
+        });
+    </script>
+</body>
+</html>
