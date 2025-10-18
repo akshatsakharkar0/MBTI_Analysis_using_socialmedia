@@ -48,6 +48,61 @@ def quiz():
 def chat():
     return render_template('chat.html')
 
+@app.route('/dashboard')
+def dashboard():
+    return render_template('dashboard.html')
+
+@app.route('/login')
+def login_page():
+    return render_template('login.html')
+
+@app.route('/login', methods=['POST'])
+def login():
+    data = request.get_json()
+    username = data.get('username')
+    password = data.get('password')
+    
+    # Simple authentication (in production, use proper password hashing)
+    users_file = os.path.join(base_dir, 'users.json')
+    try:
+        with open(users_file, 'r') as f:
+            users = json.load(f)
+    except FileNotFoundError:
+        users = {}
+    
+    if username in users and users[username]['password'] == password:
+        return jsonify({'success': True})
+    else:
+        return jsonify({'success': False, 'error': 'Invalid credentials'})
+
+@app.route('/signup', methods=['POST'])
+def signup():
+    data = request.get_json()
+    username = data.get('username')
+    email = data.get('email')
+    password = data.get('password')
+    
+    users_file = os.path.join(base_dir, 'users.json')
+    try:
+        with open(users_file, 'r') as f:
+            users = json.load(f)
+    except FileNotFoundError:
+        users = {}
+    
+    if username in users:
+        return jsonify({'success': False, 'error': 'Username already exists'})
+    
+    users[username] = {
+        'email': email,
+        'password': password,
+        'created_at': datetime.now().isoformat()
+    }
+    
+    with open(users_file, 'w') as f:
+        json.dump(users, f, indent=2)
+    
+    return jsonify({'success': True})
+
 @app.route('/chat', methods=['POST'])
 def chat_api():
     data = request.get_json()

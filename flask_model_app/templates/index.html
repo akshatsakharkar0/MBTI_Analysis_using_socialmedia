@@ -5,6 +5,9 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='quiz.css') }}">
 </head>
 <body>
+    <div class="auth-header">
+        <button id="auth-btn" class="btn-auth" onclick="handleAuth()">Sign In</button>
+    </div>
     <div class="container">
         <div class="hero-section">
             <h1>🧠 MBTI Personality Analysis</h1>
@@ -13,6 +16,7 @@
             <div class="hero-buttons">
                 <a href="/quiz" class="btn btn-primary btn-large">🎯 Know Your Personality</a>
                 <a href="/chat" class="btn btn-primary btn-large">🤖 Chat with AI Assistant</a>
+                <a href="/dashboard" class="btn btn-primary btn-large" id="dashboard-btn" style="display:none;">📊 Dashboard</a>
             </div>
             <p class="hero-note">Solve all your problems by talking to our AI chatbot!</p>
         </div>
@@ -76,6 +80,41 @@
                 document.getElementById('result').innerHTML = `<div class="error">Error: ${err}</div>`;
             });
         });
+        
+        // Check login status on page load
+        function checkLoginStatus() {
+            const isLoggedIn = localStorage.getItem('isLoggedIn');
+            const authBtn = document.getElementById('auth-btn');
+            const dashboardBtn = document.getElementById('dashboard-btn');
+            
+            if (isLoggedIn === 'true') {
+                authBtn.textContent = 'Log Out';
+                authBtn.onclick = logout;
+                dashboardBtn.style.display = 'inline-block';
+            } else {
+                authBtn.textContent = 'Sign In';
+                authBtn.onclick = () => window.location.href = '/login';
+                dashboardBtn.style.display = 'none';
+            }
+        }
+        
+        function handleAuth() {
+            const isLoggedIn = localStorage.getItem('isLoggedIn');
+            if (isLoggedIn === 'true') {
+                logout();
+            } else {
+                window.location.href = '/login';
+            }
+        }
+        
+        function logout() {
+            localStorage.removeItem('isLoggedIn');
+            localStorage.removeItem('username');
+            checkLoginStatus();
+        }
+        
+        // Check status when page loads
+        document.addEventListener('DOMContentLoaded', checkLoginStatus);
     </script>
 </body>
 </html>

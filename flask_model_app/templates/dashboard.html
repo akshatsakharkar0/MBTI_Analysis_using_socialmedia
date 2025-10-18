@@ -1,0 +1,1653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Progress Dashboard</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      height: 100vh;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    /* Left Calendar */
+    .sidebar {
+      width: 300px;
+      background: white;
+      padding: 20px;
+      box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+      overflow-y: auto;
+    }
+
+    .calendar-header {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 5px;
+      margin-bottom: 20px;
+    }
+
+    .day-header {
+      text-align: center;
+      font-weight: bold;
+      padding: 5px;
+      font-size: 12px;
+      color: #666;
+    }
+
+    .day {
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      cursor: pointer;
+      background: #f5f5f5;
+      transition: all 0.3s;
+      font-size: 14px;
+    }
+
+    .day.logged {
+      background: #4caf50;
+      color: white;
+      transform: scale(1.1);
+    }
+
+    .day:hover {
+      background: #e0e0e0;
+    }
+
+    .stats {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 10px;
+      margin-top: 20px;
+    }
+
+    .stat-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    /* Main Content */
+    .main-content {
+      flex: 1;
+      padding: 30px;
+      overflow-y: auto;
+    }
+
+    .goal-selection {
+      background: white;
+      padding: 30px;
+      border-radius: 20px;
+      text-align: center;
+      margin-bottom: 30px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+
+    .goal-options {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin: 20px 0;
+    }
+
+    .goal-card {
+      padding: 20px;
+      border: 2px solid #e1e5e9;
+      border-radius: 15px;
+      cursor: pointer;
+      transition: all 0.3s;
+      background: #f8f9fa;
+    }
+
+    .goal-card:hover, .goal-card.selected {
+      border-color: #667eea;
+      background: #f0f4ff;
+      transform: translateY(-5px);
+    }
+
+    .btn {
+      padding: 12px 30px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 25px;
+      cursor: pointer;
+      font-size: 16px;
+      margin: 10px;
+      transition: all 0.3s;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+    }
+
+    .task-management {
+      background: white;
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      display: none;
+    }
+
+    .definition-box {
+      background: linear-gradient(135deg, #e8f5e8 0%, #f0f8f0 100%);
+      padding: 20px;
+      border-radius: 15px;
+      margin-bottom: 25px;
+      border-left: 5px solid #4caf50;
+    }
+
+    .task-form {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 15px;
+      margin-bottom: 20px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin-bottom: 15px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .form-group label {
+      margin-bottom: 5px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .form-group input, .form-group select {
+      padding: 10px;
+      border: 2px solid #e1e5e9;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+
+    .form-group input:focus, .form-group select:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .task-item {
+      background: white;
+      border: 1px solid #e1e5e9;
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 15px;
+      position: relative;
+    }
+
+    .task-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .task-status {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .status-pending {
+      background: #fff3cd;
+      color: #856404;
+    }
+
+    .status-completed {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .status-overdue {
+      background: #f8d7da;
+      color: #721c24;
+    }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .metric {
+      text-align: center;
+      padding: 10px;
+      background: #f8f9fa;
+      border-radius: 8px;
+    }
+
+    .metric-value {
+      font-size: 18px;
+      font-weight: bold;
+      color: #667eea;
+    }
+
+    .metric-label {
+      font-size: 12px;
+      color: #666;
+    }
+
+    .review-section {
+      background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+      padding: 25px;
+      border-radius: 15px;
+      margin-top: 20px;
+    }
+
+    .user-greeting {
+      background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+      padding: 20px;
+      border-radius: 15px;
+      margin-bottom: 30px;
+      text-align: center;
+      border-left: 5px solid #667eea;
+    }
+
+    .user-greeting h2 {
+      color: #333;
+      margin-bottom: 10px;
+    }
+
+    .quote {
+      font-style: italic;
+      color: #666;
+      font-size: 16px;
+      margin: 0;
+    }
+
+    .resistance-btn, .pause-reason-btn, .satisfaction-btn {
+      padding: 8px 12px;
+      margin: 5px;
+      border: 2px solid #e1e5e9;
+      border-radius: 8px;
+      background: #f8f9fa;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.3s;
+    }
+
+    .resistance-btn:hover, .pause-reason-btn:hover, .satisfaction-btn:hover {
+      border-color: #667eea;
+      background: #f0f4ff;
+    }
+
+    .timer-display {
+      font-family: 'Courier New', monospace;
+    }
+
+    .resistance-section, .timer-section, .pause-section, .satisfaction-section {
+      border: 1px solid #e1e5e9;
+    }
+
+    #start-btn-${task.id}:disabled, #complete-btn-${task.id}:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      background: #e1e5e9;
+      border-radius: 4px;
+      overflow: hidden;
+      margin: 10px 0;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #4caf50, #8bc34a);
+      transition: width 0.3s;
+    }
+
+    @media (max-width: 768px) {
+      body {
+        flex-direction: column;
+      }
+      .sidebar {
+        width: 100%;
+        height: auto;
+      }
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Left Sidebar -->
+  <div class="sidebar">
+    <div class="calendar-header">
+      <h2>📅 Daily Visits</h2>
+      <p id="currentMonth"></p>
+    </div>
+    
+    <div class="calendar-grid" id="calendarGrid">
+      <div class="day-header">S</div>
+      <div class="day-header">M</div>
+      <div class="day-header">T</div>
+      <div class="day-header">W</div>
+      <div class="day-header">T</div>
+      <div class="day-header">F</div>
+      <div class="day-header">S</div>
+    </div>
+
+    <div class="stats">
+      <h3>📊 This Month</h3>
+      <div class="stat-item">
+        <span>Login Streak:</span>
+        <strong id="loginStreak">0 days</strong>
+      </div>
+      <div class="stat-item">
+        <span>Tasks Completed:</span>
+        <strong id="tasksCompleted">0</strong>
+      </div>
+      <div class="stat-item">
+        <span>Success Rate:</span>
+        <strong id="successRate">0%</strong>
+      </div>
+    </div>
+
+    <div class="category-nav" style="margin-top: 20px;">
+      <h3>🎯 Categories</h3>
+      <button class="category-btn" onclick="switchCategory('procrastination')" style="width: 100%; margin: 5px 0; padding: 10px; border: 2px solid #e1e5e9; border-radius: 8px; background: #f8f9fa; cursor: pointer;">⏰ Stop Procrastination</button>
+      <button class="category-btn" onclick="switchCategory('learn')" style="width: 100%; margin: 5px 0; padding: 10px; border: 2px solid #e1e5e9; border-radius: 8px; background: #f8f9fa; cursor: pointer;">📚 Learn Something New</button>
+      <button class="category-btn" onclick="switchCategory('habit')" style="width: 100%; margin: 5px 0; padding: 10px; border: 2px solid #e1e5e9; border-radius: 8px; background: #f8f9fa; cursor: pointer;">🚫 Break Bad Habits</button>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <!-- User Greeting -->
+    <div class="user-greeting">
+      <h2 id="userGreeting">Hi there!</h2>
+      <p id="motivationalQuote" class="quote">Loading inspiration...</p>
+    </div>
+    <!-- Goal Selection -->
+    <div class="goal-selection" id="goalSelection">
+      <h1>🎯 What do you want to improve?</h1>
+      <p>Choose your focus area to get a personalized improvement plan</p>
+      
+      <div class="goal-options">
+        <div class="goal-card" data-goal="procrastination">
+          <h3>⏰ Stop Procrastination</h3>
+          <p>Build consistency and overcome delays</p>
+        </div>
+        <div class="goal-card" data-goal="learn">
+          <h3>📚 Learn Something New</h3>
+          <p>Develop new skills and knowledge</p>
+        </div>
+        <div class="goal-card" data-goal="habit">
+          <h3>🚫 Break Bad Habits</h3>
+          <p>Replace negative patterns with positive ones</p>
+        </div>
+      </div>
+      
+      <button class="btn" onclick="submitGoal()">Start Your Journey</button>
+    </div>
+
+    <!-- Task Management Section -->
+    <div class="task-management" id="taskManagement">
+      <div class="definition-box" id="definitionBox"></div>
+      
+      <!-- Add Task Form -->
+      <div class="task-form">
+        <h3 id="taskFormTitle">➕ Add New Task</h3>
+        <div class="form-row" id="basicTaskInfo">
+          <div class="form-group">
+            <label id="taskNameLabel">Task Name</label>
+            <input type="text" id="taskName" placeholder="What do you want to accomplish?">
+          </div>
+          <div class="form-group">
+            <label id="timeLabel">Planned Start Time</label>
+            <input type="time" id="plannedTime">
+          </div>
+        </div>
+        <div class="form-row" id="advancedTaskInfo">
+          <div class="form-group">
+            <label>Expected Duration (minutes)</label>
+            <input type="number" id="duration" placeholder="30" min="5" max="480">
+          </div>
+          <div class="form-group">
+            <label>Priority Level</label>
+            <select id="priority">
+              <option value="low">Low</option>
+              <option value="medium" selected>Medium</option>
+              <option value="high">High</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn" onclick="addTask()">Add Task</button>
+      </div>
+
+      <!-- Task List -->
+      <div id="taskList">
+        <h3>📋 Today's Tasks</h3>
+        <div id="tasksContainer"></div>
+      </div>
+
+      <!-- Review Section -->
+      <div class="review-section">
+        <h3>📈 Progress Review</h3>
+        <div style="margin-bottom: 20px;">
+          <button class="btn" onclick="generateWeeklyReview()">Weekly Review</button>
+          <button class="btn" onclick="generateOverallReview()">Overall Review</button>
+        </div>
+        <div id="reviewContent"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let selectedGoal = '';
+    let currentCategory = '';
+    let currentUser = localStorage.getItem('username') || 'Guest';
+    let tasks = JSON.parse(localStorage.getItem(`tasks_${currentUser}`)) || [];
+    let activeTimer = null;
+    let timerStartTime = null;
+    let totalElapsedTime = 0;
+    let currentTaskId = null;
+
+    // Motivational quotes
+    const motivationalQuotes = [
+      "Success is not final, failure is not fatal: it is the courage to continue that counts. 💪",
+      "The only way to do great work is to love what you do. ❤️",
+      "Don't watch the clock; do what it does. Keep going. ⏰",
+      "Believe you can and you're halfway there. 🌟",
+      "The future depends on what you do today. 🚀",
+      "Progress, not perfection. Every step counts! 👣",
+      "Your only limit is your mind. Think bigger! 🧠",
+      "Dream big, start small, but most importantly, start! ✨",
+      "Champions keep playing until they get it right. 🏆",
+      "The best time to plant a tree was 20 years ago. The second best time is now. 🌱",
+      "You are stronger than you think and more capable than you imagine. 💎",
+      "Small daily improvements lead to stunning results. 📈"
+    ];
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', function() {
+      initUserGreeting();
+      autoLogToday();
+      setTimeout(() => {
+        initCalendar();
+      }, 100);
+      updateStats();
+      loadTasks();
+      
+      // Goal card selection
+      document.querySelectorAll('.goal-card').forEach(card => {
+        card.addEventListener('click', function() {
+          document.querySelectorAll('.goal-card').forEach(c => c.classList.remove('selected'));
+          this.classList.add('selected');
+          selectedGoal = this.dataset.goal;
+        });
+      });
+    });
+
+    // Initialize user greeting and motivational quote
+    function initUserGreeting() {
+      const username = localStorage.getItem('username') || 'Guest';
+      const randomQuote = motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)];
+      
+      document.getElementById('userGreeting').textContent = `Hi ${username}! 👋`;
+      document.getElementById('motivationalQuote').textContent = randomQuote;
+    }
+
+    // Auto-log today's visit (user-specific)
+    function autoLogToday() {
+      const today = new Date().getDate();
+      const loggedDaysKey = `loggedDays_${currentUser}`;
+      let loggedDays = JSON.parse(localStorage.getItem(loggedDaysKey)) || [];
+      
+      if (!loggedDays.includes(today)) {
+        loggedDays.push(today);
+        localStorage.setItem(loggedDaysKey, JSON.stringify(loggedDays));
+      }
+    }
+
+    // Calendar Functions
+    function initCalendar() {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = now.getMonth();
+      
+      const currentMonthElement = document.getElementById('currentMonth');
+      const calendarGrid = document.getElementById('calendarGrid');
+      
+      if (!currentMonthElement || !calendarGrid) {
+        console.error('Calendar elements not found');
+        return;
+      }
+      
+      currentMonthElement.textContent = now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+      
+      const firstDay = new Date(year, month, 1).getDay();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      
+      // Clear existing days (keep headers)
+      const existingDays = calendarGrid.querySelectorAll('.day');
+      existingDays.forEach(day => day.remove());
+      
+      // Add empty cells for days before month starts
+      for (let i = 0; i < firstDay; i++) {
+        const emptyDay = document.createElement('div');
+        calendarGrid.appendChild(emptyDay);
+      }
+      
+      // Add days of the month (user-specific)
+      const loggedDaysKey = `loggedDays_${currentUser}`;
+      const loggedDays = JSON.parse(localStorage.getItem(loggedDaysKey)) || [];
+      
+      for (let day = 1; day <= daysInMonth; day++) {
+        const dayElement = document.createElement('div');
+        dayElement.classList.add('day');
+        dayElement.textContent = day;
+        
+        if (loggedDays.includes(day)) {
+          dayElement.classList.add('logged');
+        }
+        
+        // Add click functionality to view tasks for that date
+        dayElement.addEventListener('click', function() {
+          viewTasksForDate(day);
+        });
+        dayElement.style.cursor = 'pointer';
+        
+        calendarGrid.appendChild(dayElement);
+      }
+    }
+
+    // View tasks for a specific date
+    function viewTasksForDate(day) {
+      const tasksForDate = tasks.filter(task => task.date === day);
+      
+      if (tasksForDate.length === 0) {
+        alert(`No tasks found for day ${day}`);
+        return;
+      }
+      
+      // Create modal-like display
+      const modal = document.createElement('div');
+      modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+      `;
+      
+      const content = document.createElement('div');
+      content.style.cssText = `
+        background: white;
+        padding: 30px;
+        border-radius: 15px;
+        max-width: 500px;
+        max-height: 80vh;
+        overflow-y: auto;
+        position: relative;
+      `;
+      
+      let html = `<h3>📅 Tasks for Day ${day}</h3><br>`;
+      
+      tasksForDate.forEach(task => {
+        const status = task.completed ? 'Completed' : 'Pending';
+        const statusColor = task.completed ? '#4caf50' : '#ff9800';
+        
+        html += `
+          <div style="border: 1px solid #e1e5e9; padding: 15px; margin-bottom: 15px; border-radius: 10px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+              <h4 style="margin: 0;">${task.name}</h4>
+              <span style="background: ${statusColor}; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px;">${status}</span>
+            </div>
+            <p style="margin: 5px 0;"><strong>Planned:</strong> ${task.plannedTime} (${task.duration} min)</p>
+            <p style="margin: 5px 0;"><strong>Priority:</strong> ${task.priority}</p>
+            ${task.completed ? `
+              <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px;">
+                <div style="text-align: center; background: #f8f9fa; padding: 10px; border-radius: 8px;">
+                  <div style="font-weight: bold; color: #667eea;">${task.actualDuration || 0}</div>
+                  <div style="font-size: 12px; color: #666;">Minutes</div>
+                </div>
+                <div style="text-align: center; background: #f8f9fa; padding: 10px; border-radius: 8px;">
+                  <div style="font-weight: bold; color: #667eea;">${task.startDelay || 0}</div>
+                  <div style="font-size: 12px; color: #666;">Delay (min)</div>
+                </div>
+                <div style="text-align: center; background: #f8f9fa; padding: 10px; border-radius: 8px;">
+                  <div style="font-weight: bold; color: #667eea;">${task.resistanceLevel || 'N/A'}</div>
+                  <div style="font-size: 12px; color: #666;">Resistance</div>
+                </div>
+                <div style="text-align: center; background: #f8f9fa; padding: 10px; border-radius: 8px;">
+                  <div style="font-weight: bold; color: #667eea;">${task.satisfactionLevel || 'N/A'}</div>
+                  <div style="font-size: 12px; color: #666;">Satisfaction</div>
+                </div>
+              </div>
+            ` : ''}
+          </div>
+        `;
+      });
+      
+      html += `<br><button onclick="this.parentElement.parentElement.remove()" style="padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer;">Close</button>`;
+      
+      content.innerHTML = html;
+      modal.appendChild(content);
+      document.body.appendChild(modal);
+      
+      // Close modal when clicking outside
+      modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+          modal.remove();
+        }
+      });
+    }
+
+    function updateStats() {
+      const loggedDaysKey = `loggedDays_${currentUser}`;
+      const loggedDays = JSON.parse(localStorage.getItem(loggedDaysKey)) || [];
+      const completedTasks = tasks.filter(task => task.completed).length;
+      const totalTasks = tasks.length;
+      
+      document.getElementById('loginStreak').textContent = `${loggedDays.length} days`;
+      document.getElementById('tasksCompleted').textContent = completedTasks;
+      document.getElementById('successRate').textContent = totalTasks > 0 ? `${Math.round((completedTasks / totalTasks) * 100)}%` : '0%';
+    }
+
+    // Goal Selection
+    function submitGoal() {
+      if (!selectedGoal) {
+        alert('Please select a goal first!');
+        return;
+      }
+      
+      currentCategory = selectedGoal;
+      document.getElementById('goalSelection').style.display = 'none';
+      document.getElementById('taskManagement').style.display = 'block';
+      
+      showDefinition(selectedGoal);
+      loadTasksForCategory(selectedGoal);
+      updateCategoryButtons();
+    }
+
+    function switchCategory(category) {
+      currentCategory = category;
+      selectedGoal = category;
+      document.getElementById('goalSelection').style.display = 'none';
+      document.getElementById('taskManagement').style.display = 'block';
+      
+      showDefinition(category);
+      loadTasksForCategory(category);
+      updateCategoryButtons();
+    }
+
+    function updateCategoryButtons() {
+      document.querySelectorAll('.category-btn').forEach(btn => {
+        btn.style.background = '#f8f9fa';
+        btn.style.borderColor = '#e1e5e9';
+      });
+      
+      const activeBtn = document.querySelector(`[onclick="switchCategory('${currentCategory}')"]`);
+      if (activeBtn) {
+        activeBtn.style.background = '#667eea';
+        activeBtn.style.color = 'white';
+        activeBtn.style.borderColor = '#667eea';
+      }
+    }
+
+    function showDefinition(goal) {
+      const definitions = {
+        procrastination: {
+          title: '⏰ Stop Procrastination',
+          content: `<strong>Definition:</strong> Procrastination is the act of delaying or postponing tasks despite knowing their importance. It often stems from avoidance of discomfort, fear of failure, or feeling overwhelmed.<br><br>
+          <strong>Core Metrics We'll Track:</strong><br>
+          • <strong>Consistency:</strong> Task completion rate (% of planned tasks completed)<br>
+          • <strong>Focus:</strong> Deep work time without distractions<br>
+          • <strong>Delay:</strong> Time between planned start and actual start<br>
+          • <strong>Emotional Awareness:</strong> Resistance level before starting (1-5 scale)<br>
+          • <strong>Reward:</strong> Satisfaction level after completion (1-5 scale)`
+        },
+        learn: {
+          title: '📚 Learn Something New',
+          content: `<strong>Definition:</strong> Learning is the process of acquiring new knowledge, skills, or understanding through study, experience, or teaching. Consistent learning builds expertise and opens new opportunities.<br><br>
+          <strong>Core Metrics We'll Track:</strong><br>
+          • <strong>Consistency:</strong> Daily learning streak and session completion<br>
+          • <strong>Focus:</strong> Quality study time and retention<br>
+          • <strong>Progress:</strong> Milestones achieved and skills developed<br>
+          • <strong>Engagement:</strong> Interest and motivation levels (1-5 scale)<br>
+          • <strong>Application:</strong> How you apply what you've learned`
+        },
+        habit: {
+          title: '🚫 Break Bad Habits',
+          content: `<strong>Definition:</strong> A habit is an automatic behavior pattern. Breaking bad habits involves replacing negative patterns with positive alternatives through conscious effort and consistency.<br><br>
+          <strong>Core Metrics We'll Track:</strong><br>
+          • <strong>Avoidance:</strong> Days without engaging in the bad habit (less entries = better)<br>
+          • <strong>Resistance:</strong> How much you resisted before starting (higher = better)<br>
+          • <strong>Emotional State:</strong> How you feel after the habit (guilty/sad = awareness, happy = concerning)<br>
+          • <strong>Recovery:</strong> How quickly you bounce back from setbacks`
+        }
+      };
+      
+      const def = definitions[goal];
+      document.getElementById('definitionBox').innerHTML = `<h2>${def.title}</h2><p>${def.content}</p>`;
+      
+      // Customize form based on category
+      if (goal === 'habit') {
+        document.getElementById('taskFormTitle').textContent = '➕ Add Bad Habit to Track';
+        document.getElementById('taskNameLabel').textContent = 'Bad Habit Name';
+        document.getElementById('taskName').placeholder = 'What bad habit do you want to break?';
+        document.getElementById('timeLabel').textContent = 'Time';
+        document.getElementById('advancedTaskInfo').style.display = 'none';
+      } else {
+        document.getElementById('taskFormTitle').textContent = '➕ Add New Task';
+        document.getElementById('taskNameLabel').textContent = 'Task Name';
+        document.getElementById('taskName').placeholder = 'What do you want to accomplish?';
+        document.getElementById('timeLabel').textContent = 'Planned Start Time';
+        document.getElementById('advancedTaskInfo').style.display = 'flex';
+      }
+    }
+
+    // Task Management
+    function addTask() {
+      const taskName = document.getElementById('taskName').value;
+      const plannedTime = document.getElementById('plannedTime').value;
+      const duration = document.getElementById('duration').value;
+      const priority = document.getElementById('priority').value;
+      
+      if (currentCategory === 'habit') {
+        if (!taskName || !plannedTime) {
+          alert('Please fill in habit name and time!');
+          return;
+        }
+      } else {
+        if (!taskName || !plannedTime || !duration) {
+          alert('Please fill in all required fields!');
+          return;
+        }
+      }
+      
+      const task = {
+        id: Date.now(),
+        name: taskName,
+        plannedTime: plannedTime,
+        duration: currentCategory === 'habit' ? 0 : parseInt(duration),
+        priority: currentCategory === 'habit' ? 'medium' : priority,
+        created: new Date().toISOString(),
+        date: new Date().getDate(),
+        completed: false,
+        actualStartTime: null,
+        actualDuration: null,
+        resistanceLevel: null,
+        satisfactionLevel: null,
+        notes: '',
+        userId: currentUser,
+        status: 'pending',
+        timerDisplay: '00:00',
+        startDelay: null,
+        category: selectedGoal,
+        emotionalState: null // for habits: happy/guilty/sad
+      };
+      
+      tasks.push(task);
+      saveTasks();
+      loadTasksForCategory(currentCategory);
+      clearTaskForm();
+    }
+
+    function clearTaskForm() {
+      document.getElementById('taskName').value = '';
+      document.getElementById('plannedTime').value = '';
+      if (currentCategory !== 'habit') {
+        document.getElementById('duration').value = '';
+        document.getElementById('priority').value = 'medium';
+      }
+    }
+
+    function saveTasks() {
+      localStorage.setItem(`tasks_${currentUser}`, JSON.stringify(tasks));
+      updateStats();
+    }
+
+    function loadTasks() {
+      renderTasks();
+    }
+
+    function loadTasksForCategory(category) {
+      const categoryTasks = tasks.filter(task => task.category === category);
+      renderCategoryTasks(categoryTasks);
+    }
+
+    function renderCategoryTasks(categoryTasks) {
+      const container = document.getElementById('tasksContainer');
+      container.innerHTML = '';
+      
+      if (categoryTasks.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">No tasks yet for this category. Add your first task above!</p>';
+        return;
+      }
+      
+      categoryTasks.forEach(task => {
+        const taskElement = createTaskElement(task);
+        container.appendChild(taskElement);
+      });
+    }
+
+    function renderTasks() {
+      const container = document.getElementById('tasksContainer');
+      if (!container) return;
+      
+      container.innerHTML = '';
+      
+      // Filter tasks by current category if one is selected
+      const tasksToShow = currentCategory ? 
+        tasks.filter(task => task.category === currentCategory) : 
+        tasks;
+      
+      if (tasksToShow.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">No tasks yet. Add your first task above!</p>';
+        return;
+      }
+      
+      tasksToShow.forEach(task => {
+        const taskElement = createTaskElement(task);
+        container.appendChild(taskElement);
+      });
+    }
+
+    function createTaskElement(task) {
+      const div = document.createElement('div');
+      div.className = 'task-item';
+      
+      const status = getTaskStatus(task);
+      const statusClass = `status-${status.toLowerCase()}`;
+      
+      div.innerHTML = `
+        <div class="task-header">
+          <h4>${task.name}</h4>
+          <span class="task-status ${statusClass}">${status}</span>
+        </div>
+        <p><strong>Planned:</strong> ${task.plannedTime} (${task.duration} min) | <strong>Priority:</strong> ${task.priority}</p>
+        ${task.actualStartTime ? `<p><strong>Started:</strong> ${new Date(task.actualStartTime).toLocaleTimeString()} ${task.startDelay > 0 ? `<span style="color: #ff9800;">(${task.startDelay} min late)</span>` : `<span style="color: #4caf50;">(on time)</span>`}</p>` : ''}
+        
+        ${!task.completed ? `
+          <div id="task-controls-${task.id}">
+            ${task.status === 'pending' ? getTaskStartUI(task) : task.status === 'running' ? `
+              <div class="timer-section" style="margin: 15px 0; padding: 15px; background: #e8f5e8; border-radius: 10px; text-align: center;">
+                <div class="timer-display" style="font-size: 24px; font-weight: bold; color: #4caf50; margin-bottom: 15px;">
+                  ⏱️ <span id="timer-${task.id}">${task.timerDisplay}</span>
+                </div>
+                <button class="btn" onclick="pauseTask(${task.id})" style="background: #ff9800;">Pause</button>
+                <button class="btn" onclick="stopTask(${task.id})" style="background: #f44336;">Stop</button>
+              </div>
+            ` : task.status === 'paused' ? `
+              <div class="pause-section" style="margin: 15px 0; padding: 15px; background: #fff3cd; border-radius: 10px;">
+                <div class="timer-display" style="font-size: 20px; font-weight: bold; color: #856404; margin-bottom: 15px;">
+                  ⏸️ Paused: <span id="timer-${task.id}">${task.timerDisplay}</span>
+                </div>
+                <label style="display: block; margin-bottom: 10px; font-weight: 600;">Reason for pause:</label>
+                <div class="pause-reasons">
+                  <button class="pause-reason-btn" onclick="selectPauseReason(${task.id}, 'emergency')">Emergency</button>
+                  <button class="pause-reason-btn" onclick="selectPauseReason(${task.id}, 'break')">Break</button>
+                  <button class="pause-reason-btn" onclick="selectPauseReason(${task.id}, 'bored')">Bored</button>
+                  <button class="pause-reason-btn" onclick="selectPauseReason(${task.id}, 'distraction')">Distraction</button>
+                </div>
+                <div style="margin-top: 15px;">
+                  <button class="btn" onclick="resumeTask(${task.id})">Resume</button>
+                  <button class="btn" onclick="stopTask(${task.id})" style="background: #f44336;">Stop Task</button>
+                </div>
+              </div>
+            ` : ''}
+            <div style="margin-top: 15px;">
+              <button class="btn" onclick="editTask(${task.id})">Edit</button>
+              <button class="btn" onclick="deleteTask(${task.id})">Delete</button>
+            </div>
+          </div>
+        ` : task.category === 'habit' ? `
+          <div class="metrics-grid">
+            <div class="metric">
+              <div class="metric-value">${task.resistanceLevel || 'N/A'}</div>
+              <div class="metric-label">Resistance</div>
+            </div>
+            <div class="metric">
+              <div class="metric-value">${task.emotionalState || 'N/A'}</div>
+              <div class="metric-label">Feeling</div>
+            </div>
+            <div class="metric">
+              <div class="metric-value">${new Date(task.actualStartTime).toLocaleTimeString()}</div>
+              <div class="metric-label">Time</div>
+            </div>
+          </div>
+        ` : `
+          <div class="metrics-grid">
+            <div class="metric">
+              <div class="metric-value">${task.actualDuration || 0}</div>
+              <div class="metric-label">Minutes</div>
+            </div>
+            <div class="metric">
+              <div class="metric-value">${task.startDelay || 0}</div>
+              <div class="metric-label">Delay (min)</div>
+            </div>
+            <div class="metric">
+              <div class="metric-value">${task.resistanceLevel || 'N/A'}</div>
+              <div class="metric-label">Resistance</div>
+            </div>
+            <div class="metric">
+              <div class="metric-value">${task.satisfactionLevel || 'N/A'}</div>
+              <div class="metric-label">Satisfaction</div>
+            </div>
+          </div>
+        `}
+      `;
+      
+      return div;
+    }
+
+    function getTaskStatus(task) {
+      if (task.completed) return 'Completed';
+      
+      const now = new Date();
+      const today = now.toDateString();
+      const taskDate = new Date().toDateString();
+      const plannedTime = new Date(`${taskDate} ${task.plannedTime}`);
+      
+      if (now > plannedTime) return 'Overdue';
+      return 'Pending';
+    }
+
+    function getTaskStartUI(task) {
+      if (task.category === 'habit') {
+        return `
+          <div class="habit-section" style="margin: 15px 0; padding: 15px; background: #fff3cd; border-radius: 10px;">
+            <label style="display: block; margin-bottom: 10px; font-weight: 600;">How much did you resist before starting? (Higher = Better):</label>
+            <div class="resistance-buttons">
+              <button class="resistance-btn" data-level="1" onclick="selectHabitResistance(${task.id}, 1)">1 - No resistance</button>
+              <button class="resistance-btn" data-level="2" onclick="selectHabitResistance(${task.id}, 2)">2 - Little resistance</button>
+              <button class="resistance-btn" data-level="3" onclick="selectHabitResistance(${task.id}, 3)">3 - Some resistance</button>
+              <button class="resistance-btn" data-level="4" onclick="selectHabitResistance(${task.id}, 4)">4 - Strong resistance</button>
+              <button class="resistance-btn" data-level="5" onclick="selectHabitResistance(${task.id}, 5)">5 - Very strong resistance</button>
+            </div>
+            <div id="habit-emotion-${task.id}" style="display: none; margin-top: 15px;">
+              <label style="display: block; margin-bottom: 10px; font-weight: 600;">How are you feeling now?</label>
+              <div class="emotion-buttons">
+                <button class="emotion-btn" data-emotion="happy" onclick="selectEmotion(${task.id}, 'happy')">😊 Happy</button>
+                <button class="emotion-btn" data-emotion="guilty" onclick="selectEmotion(${task.id}, 'guilty')">😔 Guilty</button>
+                <button class="emotion-btn" data-emotion="sad" onclick="selectEmotion(${task.id}, 'sad')">😢 Sad</button>
+              </div>
+              <button class="btn" id="complete-habit-${task.id}" onclick="completeHabitTask(${task.id})" disabled style="margin-top: 15px;">Complete Entry</button>
+            </div>
+          </div>
+        `;
+      } else {
+        return `
+          <div class="resistance-section" style="margin: 15px 0; padding: 15px; background: #f8f9fa; border-radius: 10px;">
+            <label style="display: block; margin-bottom: 10px; font-weight: 600;">Rate your resistance level (1-5):</label>
+            <div class="resistance-buttons">
+              <button class="resistance-btn" data-level="1" onclick="selectResistance(${task.id}, 1)">1 - No resistance</button>
+              <button class="resistance-btn" data-level="2" onclick="selectResistance(${task.id}, 2)">2 - Low</button>
+              <button class="resistance-btn" data-level="3" onclick="selectResistance(${task.id}, 3)">3 - Medium</button>
+              <button class="resistance-btn" data-level="4" onclick="selectResistance(${task.id}, 4)">4 - High</button>
+              <button class="resistance-btn" data-level="5" onclick="selectResistance(${task.id}, 5)">5 - Very high</button>
+            </div>
+            <button class="btn" id="start-btn-${task.id}" onclick="startTaskTimer(${task.id})" disabled>Start Task</button>
+          </div>
+        `;
+      }
+    }
+
+    function selectHabitResistance(taskId, level) {
+      document.querySelectorAll(`#task-controls-${taskId} .resistance-btn`).forEach(btn => {
+        btn.style.background = '#f8f9fa';
+        btn.style.color = '#333';
+      });
+      
+      const selectedBtn = document.querySelector(`#task-controls-${taskId} .resistance-btn[data-level="${level}"]`);
+      selectedBtn.style.background = '#667eea';
+      selectedBtn.style.color = 'white';
+      
+      const task = tasks.find(t => t.id === taskId);
+      task.resistanceLevel = level;
+      task.actualStartTime = new Date().toISOString();
+      
+      // Show emotion selection
+      document.getElementById(`habit-emotion-${taskId}`).style.display = 'block';
+    }
+
+    function selectEmotion(taskId, emotion) {
+      document.querySelectorAll(`#task-controls-${taskId} .emotion-btn`).forEach(btn => {
+        btn.style.background = '#f8f9fa';
+        btn.style.color = '#333';
+      });
+      
+      const selectedBtn = document.querySelector(`#task-controls-${taskId} .emotion-btn[data-emotion="${emotion}"]`);
+      selectedBtn.style.background = emotion === 'happy' ? '#f44336' : '#4caf50';
+      selectedBtn.style.color = 'white';
+      
+      const task = tasks.find(t => t.id === taskId);
+      task.emotionalState = emotion;
+      
+      document.getElementById(`complete-habit-${taskId}`).disabled = false;
+      document.getElementById(`complete-habit-${taskId}`).style.opacity = '1';
+    }
+
+    function completeHabitTask(taskId) {
+      const task = tasks.find(t => t.id === taskId);
+      task.completed = true;
+      task.actualDuration = 0;
+      
+      saveTasks();
+      loadTasksForCategory(currentCategory);
+    }
+
+    function selectResistance(taskId, level) {
+      // Update button styles
+      document.querySelectorAll(`#task-controls-${taskId} .resistance-btn`).forEach(btn => {
+        btn.style.background = '#f8f9fa';
+        btn.style.color = '#333';
+      });
+      
+      const selectedBtn = document.querySelector(`#task-controls-${taskId} .resistance-btn[data-level="${level}"]`);
+      selectedBtn.style.background = '#667eea';
+      selectedBtn.style.color = 'white';
+      
+      // Enable start button
+      document.getElementById(`start-btn-${taskId}`).disabled = false;
+      document.getElementById(`start-btn-${taskId}`).style.opacity = '1';
+      
+      // Store resistance level
+      const task = tasks.find(t => t.id === taskId);
+      task.resistanceLevel = level;
+    }
+
+    function startTaskTimer(taskId) {
+      const task = tasks.find(t => t.id === taskId);
+      if (!task) return;
+      
+      const now = new Date();
+      task.actualStartTime = now.toISOString();
+      
+      // Calculate delay from planned time
+      const today = now.toDateString();
+      const plannedDateTime = new Date(`${today} ${task.plannedTime}`);
+      const delayMinutes = Math.max(0, Math.floor((now - plannedDateTime) / (1000 * 60)));
+      task.startDelay = delayMinutes;
+      
+      task.status = 'running';
+      currentTaskId = taskId;
+      timerStartTime = Date.now();
+      totalElapsedTime = 0;
+      
+      // Start timer
+      activeTimer = setInterval(() => {
+        updateTimerDisplay(taskId);
+      }, 1000);
+      
+      saveTasks();
+      renderTasks();
+    }
+
+    function updateTimerDisplay(taskId) {
+      const currentSessionTime = Math.floor((Date.now() - timerStartTime) / 1000);
+      const totalElapsed = totalElapsedTime + currentSessionTime;
+      const minutes = Math.floor(totalElapsed / 60);
+      const seconds = totalElapsed % 60;
+      const display = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+      
+      const timerElement = document.getElementById(`timer-${taskId}`);
+      if (timerElement) {
+        timerElement.textContent = display;
+      }
+      
+      // Update task object
+      const task = tasks.find(t => t.id === taskId);
+      if (task) {
+        task.timerDisplay = display;
+        task.actualDuration = Math.floor(totalElapsed / 60);
+      }
+    }
+
+    function pauseTask(taskId) {
+      if (activeTimer) {
+        clearInterval(activeTimer);
+        activeTimer = null;
+      }
+      
+      // Add current session time to total elapsed time
+      totalElapsedTime += Math.floor((Date.now() - timerStartTime) / 1000);
+      
+      const task = tasks.find(t => t.id === taskId);
+      task.status = 'paused';
+      
+      saveTasks();
+      renderTasks();
+    }
+
+    function selectPauseReason(taskId, reason) {
+      // Update button styles
+      document.querySelectorAll(`#task-controls-${taskId} .pause-reason-btn`).forEach(btn => {
+        btn.style.background = '#f8f9fa';
+        btn.style.color = '#333';
+      });
+      
+      event.target.style.background = '#ff9800';
+      event.target.style.color = 'white';
+      
+      // Store pause reason
+      const task = tasks.find(t => t.id === taskId);
+      task.pauseReason = reason;
+    }
+
+    function resumeTask(taskId) {
+      const task = tasks.find(t => t.id === taskId);
+      task.status = 'running';
+      timerStartTime = Date.now(); // Reset start time for new session
+      
+      // Restart timer
+      activeTimer = setInterval(() => {
+        updateTimerDisplay(taskId);
+      }, 1000);
+      
+      saveTasks();
+      renderTasks();
+    }
+
+    function stopTask(taskId) {
+      if (activeTimer) {
+        clearInterval(activeTimer);
+        activeTimer = null;
+      }
+      
+      const task = tasks.find(t => t.id === taskId);
+      task.status = 'completing';
+      
+      // Show satisfaction UI
+      showSatisfactionUI(taskId);
+    }
+
+    function showSatisfactionUI(taskId) {
+      const task = tasks.find(t => t.id === taskId);
+      const controlsDiv = document.getElementById(`task-controls-${taskId}`);
+      
+      controlsDiv.innerHTML = `
+        <div class="satisfaction-section" style="margin: 15px 0; padding: 15px; background: #e3f2fd; border-radius: 10px;">
+          <h4 style="color: #1976d2; margin-bottom: 15px;">🎉 Task Completed!</h4>
+          <p style="margin-bottom: 10px;">Time spent: <strong>${task.timerDisplay}</strong></p>
+          <p style="margin-bottom: 15px;">Started: <strong>${new Date(task.actualStartTime).toLocaleTimeString()}</strong> ${task.startDelay > 0 ? `<span style="color: #ff9800;">(${task.startDelay} min late)</span>` : `<span style="color: #4caf50;">(on time)</span>`}</p>
+          <label style="display: block; margin-bottom: 10px; font-weight: 600;">Rate your satisfaction level (1-5):</label>
+          <div class="satisfaction-buttons">
+            <button class="satisfaction-btn" data-level="1" onclick="selectSatisfaction(${taskId}, 1)">1 - Not satisfied</button>
+            <button class="satisfaction-btn" data-level="2" onclick="selectSatisfaction(${taskId}, 2)">2 - Low</button>
+            <button class="satisfaction-btn" data-level="3" onclick="selectSatisfaction(${taskId}, 3)">3 - Medium</button>
+            <button class="satisfaction-btn" data-level="4" onclick="selectSatisfaction(${taskId}, 4)">4 - High</button>
+            <button class="satisfaction-btn" data-level="5" onclick="selectSatisfaction(${taskId}, 5)">5 - Very satisfied</button>
+          </div>
+          <button class="btn" id="complete-btn-${taskId}" onclick="completeTask(${taskId})" disabled style="margin-top: 15px;">Complete Task</button>
+        </div>
+      `;
+    }
+
+    function selectSatisfaction(taskId, level) {
+      // Update button styles
+      document.querySelectorAll(`#task-controls-${taskId} .satisfaction-btn`).forEach(btn => {
+        btn.style.background = '#f8f9fa';
+        btn.style.color = '#333';
+      });
+      
+      const selectedBtn = document.querySelector(`#task-controls-${taskId} .satisfaction-btn[data-level="${level}"]`);
+      selectedBtn.style.background = '#4caf50';
+      selectedBtn.style.color = 'white';
+      
+      // Enable complete button
+      document.getElementById(`complete-btn-${taskId}`).disabled = false;
+      document.getElementById(`complete-btn-${taskId}`).style.opacity = '1';
+      
+      // Store satisfaction level
+      const task = tasks.find(t => t.id === taskId);
+      task.satisfactionLevel = level;
+    }
+
+    function completeTask(taskId) {
+      const task = tasks.find(t => t.id === taskId);
+      if (!task) return;
+      
+      task.completed = true;
+      task.status = 'completed';
+      currentTaskId = null;
+      
+      saveTasks();
+      renderTasks();
+    }
+
+    function editTask(taskId) {
+      const task = tasks.find(t => t.id === taskId);
+      if (!task) return;
+      
+      const newName = prompt('Edit task name:', task.name);
+      if (newName !== null && newName.trim()) {
+        task.name = newName.trim();
+        saveTasks();
+        renderTasks();
+      }
+    }
+
+    function deleteTask(taskId) {
+      if (confirm('Are you sure you want to delete this task?')) {
+        tasks = tasks.filter(t => t.id !== taskId);
+        saveTasks();
+        renderTasks();
+      }
+    }
+
+    // Weekly Review
+    function generateWeeklyReview() {
+      const now = new Date();
+      const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      
+      const weeklyTasks = tasks.filter(t => {
+        const taskDate = new Date(t.created);
+        return taskDate >= weekAgo && t.category === currentCategory;
+      });
+      
+      const completedWeekly = weeklyTasks.filter(t => t.completed);
+      
+      if (weeklyTasks.length === 0) {
+        document.getElementById('reviewContent').innerHTML = '<p>No tasks in the past week for this category. Start adding tasks to see your weekly progress!</p>';
+        return;
+      }
+      
+      if (currentCategory === 'habit') {
+        const habitStats = calculateHabitWeeklyStats(completedWeekly);
+        const habitHTML = generateHabitWeeklyHTML(habitStats);
+        document.getElementById('reviewContent').innerHTML = habitHTML;
+      } else {
+        const weeklyStats = calculateWeeklyStats(weeklyTasks, completedWeekly);
+        const weeklyHTML = generateWeeklyHTML(weeklyStats);
+        document.getElementById('reviewContent').innerHTML = weeklyHTML;
+      }
+    }
+
+    function calculateWeeklyStats(weeklyTasks, completedWeekly) {
+      const completionRate = (completedWeekly.length / weeklyTasks.length) * 100;
+      const avgResistance = completedWeekly.reduce((sum, t) => sum + (t.resistanceLevel || 0), 0) / completedWeekly.length || 0;
+      const avgSatisfaction = completedWeekly.reduce((sum, t) => sum + (t.satisfactionLevel || 0), 0) / completedWeekly.length || 0;
+      const avgDelay = completedWeekly.reduce((sum, t) => sum + (t.startDelay || 0), 0) / completedWeekly.length || 0;
+      const totalTime = completedWeekly.reduce((sum, t) => sum + (t.actualDuration || 0), 0);
+      
+      return {
+        totalTasks: weeklyTasks.length,
+        completedTasks: completedWeekly.length,
+        completionRate,
+        avgResistance,
+        avgSatisfaction,
+        avgDelay,
+        totalTime
+      };
+    }
+
+    function calculateHabitWeeklyStats(completedHabits) {
+      const totalEntries = completedHabits.length;
+      const avgResistance = completedHabits.reduce((sum, t) => sum + (t.resistanceLevel || 0), 0) / completedHabits.length || 0;
+      const happyCount = completedHabits.filter(t => t.emotionalState === 'happy').length;
+      const guiltyCount = completedHabits.filter(t => t.emotionalState === 'guilty').length;
+      const sadCount = completedHabits.filter(t => t.emotionalState === 'sad').length;
+      
+      return {
+        totalEntries,
+        avgResistance,
+        happyCount,
+        guiltyCount,
+        sadCount,
+        happyPercent: totalEntries > 0 ? (happyCount / totalEntries * 100).toFixed(1) : 0
+      };
+    }
+
+    function generateHabitWeeklyHTML(stats) {
+      let performance = '';
+      let recommendations = '';
+      
+      if (stats.totalEntries <= 2) {
+        performance = '🎆 Excellent! Very few habit entries this week - you\'re avoiding the bad habit well!';
+      } else if (stats.totalEntries <= 4) {
+        performance = '👍 Good progress! Moderate number of entries, but room for improvement.';
+      } else {
+        performance = '💪 Challenging week. Many habit entries - let\'s focus on building stronger resistance.';
+      }
+      
+      if (stats.avgResistance >= 4) {
+        recommendations += '🛡️ Excellent resistance levels! You\'re very aware before engaging. ';
+      } else if (stats.avgResistance >= 2.5) {
+        recommendations += '🎯 Moderate resistance. Try to pause and think more before acting. ';
+      } else {
+        recommendations += '⚠️ Low resistance detected. Practice mindfulness and identify triggers. ';
+      }
+      
+      if (stats.happyPercent > 50) {
+        recommendations += '🚨 Concerning: You feel happy after the habit too often. This suggests the habit is still rewarding. ';
+      } else if (stats.guiltyCount > stats.sadCount) {
+        recommendations += '💭 Good awareness: Feeling guilty shows you recognize the habit is problematic. ';
+      }
+      
+      return `
+        <div style="margin-top: 20px;">
+          <h4>🚫 Bad Habits Weekly Review (Last 7 Days)</h4>
+          
+          <div class="metrics-grid" style="margin: 20px 0;">
+            <div class="metric">
+              <div class="metric-value">${stats.totalEntries}</div>
+              <div class="metric-label">Total Entries (Lower = Better)</div>
+            </div>
+            <div class="metric">
+              <div class="metric-value">${stats.avgResistance.toFixed(1)}</div>
+              <div class="metric-label">Avg Resistance (Higher = Better)</div>
+            </div>
+            <div class="metric">
+              <div class="metric-value">${stats.happyCount}</div>
+              <div class="metric-label">Happy Feelings (Lower = Better)</div>
+            </div>
+            <div class="metric">
+              <div class="metric-value">${stats.guiltyCount}</div>
+              <div class="metric-label">Guilty Feelings</div>
+            </div>
+            <div class="metric">
+              <div class="metric-value">${stats.sadCount}</div>
+              <div class="metric-label">Sad Feelings</div>
+            </div>
+          </div>
+          
+          <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin: 15px 0;">
+            <h5>💬 This Week's Performance</h5>
+            <p>${performance}</p>
+          </div>
+          
+          <div style="background: #e3f2fd; padding: 15px; border-radius: 10px;">
+            <h5>💡 Weekly Insights</h5>
+            <p>${recommendations}</p>
+          </div>
+        </div>
+      `;
+    }
+
+    function generateWeeklyHTML(stats) {
+      let performance = '';
+      let recommendations = '';
+      
+      if (stats.completionRate >= 80) {
+        performance = '🎆 Outstanding week! You\'re crushing your goals.';
+      } else if (stats.completionRate >= 60) {
+        performance = '👍 Solid week! Good consistency in task completion.';
+      } else if (stats.completionRate >= 40) {
+        performance = '💪 Decent effort this week, but there\'s room to grow.';
+      } else {
+        performance = '🔄 Challenging week. Let\'s focus on smaller, achievable goals.';
+      }
+      
+      // Delay analysis
+      if (stats.avgDelay > 30) {
+        recommendations += '⏰ High procrastination detected. Try time-blocking and removing distractions. ';
+      } else if (stats.avgDelay > 10) {
+        recommendations += '⏱️ Moderate delays noticed. Consider setting earlier start reminders. ';
+      } else {
+        recommendations += '✅ Great timing discipline! Keep maintaining punctuality. ';
+      }
+      
+      // Resistance analysis
+      if (stats.avgResistance > 3.5) {
+        recommendations += '🛡️ High resistance levels. Break tasks into smaller chunks and reward yourself. ';
+      } else if (stats.avgResistance > 2.5) {
+        recommendations += '🎯 Moderate resistance. Try the 2-minute rule to build momentum. ';
+      }
+      
+      return `
+        <div style="margin-top: 20px;">
+          <h4>📅 Weekly Review (Last 7 Days)</h4>
+          
+          <div class="metrics-grid" style="margin: 20px 0;">
+            <div class="metric">
+              <div class="metric-value">${stats.completionRate.toFixed(1)}%</div>
+              <div class="metric-label">Completion Rate</div>
+            </div>
+            <div class="metric">
+              <div class="metric-value">${stats.avgDelay.toFixed(1)}</div>
+              <div class="metric-label">Avg Delay (min)</div>
+            </div>
+            <div class="metric">
+              <div class="metric-value">${stats.avgResistance.toFixed(1)}</div>
+              <div class="metric-label">Avg Resistance</div>
+            </div>
+            <div class="metric">
+              <div class="metric-value">${stats.avgSatisfaction.toFixed(1)}</div>
+              <div class="metric-label">Avg Satisfaction</div>
+            </div>
+            <div class="metric">
+              <div class="metric-value">${stats.totalTime}</div>
+              <div class="metric-label">Total Minutes</div>
+            </div>
+            <div class="metric">
+              <div class="metric-value">${stats.completedTasks}/${stats.totalTasks}</div>
+              <div class="metric-label">Tasks Done</div>
+            </div>
+          </div>
+          
+          <div class="progress-bar">
+            <div class="progress-fill" style="width: ${stats.completionRate}%"></div>
+          </div>
+          
+          <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin: 15px 0;">
+            <h5>💬 This Week's Performance</h5>
+            <p>${performance}</p>
+          </div>
+          
+          <div style="background: #e3f2fd; padding: 15px; border-radius: 10px;">
+            <h5>💡 Weekly Insights</h5>
+            <p>${recommendations}</p>
+          </div>
+        </div>
+      `;
+    }
+
+    // Overall Review
+    function generateOverallReview() {
+      const completedTasks = tasks.filter(t => t.completed);
+      
+      if (completedTasks.length < 3) {
+        document.getElementById('reviewContent').innerHTML = '<p>Complete at least 3 tasks to see your overall progress analysis!</p>';
+        return;
+      }
+      
+      const overallStats = calculateOverallStats(completedTasks);
+      const patterns = analyzePatterns(completedTasks);
+      const trends = analyzeTrends(completedTasks);
+      const overallHTML = generateOverallHTML(overallStats, patterns, trends);
+      
+      document.getElementById('reviewContent').innerHTML = overallHTML;
+    }
+
+    function calculateOverallStats(completedTasks) {
+      const totalTasks = tasks.length;
+      const completionRate = (completedTasks.length / totalTasks) * 100;
+      const avgResistance = completedTasks.reduce((sum, t) => sum + (t.resistanceLevel || 0), 0) / completedTasks.length;
+      const avgSatisfaction = completedTasks.reduce((sum, t) => sum + (t.satisfactionLevel || 0), 0) / completedTasks.length;
+      const avgDelay = completedTasks.reduce((sum, t) => sum + (t.startDelay || 0), 0) / completedTasks.length;
+      const totalTime = completedTasks.reduce((sum, t) => sum + (t.actualDuration || 0), 0);
+      
+      return {
+        totalTasks,
+        completedTasks: completedTasks.length,
+        completionRate,
+        avgResistance,
+        avgSatisfaction,
+        avgDelay,
+        totalTime
+      };
+    }
+
+    function analyzePatterns(completedTasks) {
+      // Resistance patterns
+      const highResistanceTasks = completedTasks.filter(t => t.resistanceLevel >= 4).length;
+      const lowResistanceTasks = completedTasks.filter(t => t.resistanceLevel <= 2).length;
+      
+      // Delay patterns
+      const onTimeTasks = completedTasks.filter(t => (t.startDelay || 0) === 0).length;
+      const delayedTasks = completedTasks.filter(t => (t.startDelay || 0) > 15).length;
+      
+      // Satisfaction patterns
+      const highSatisfactionTasks = completedTasks.filter(t => t.satisfactionLevel >= 4).length;
+      const lowSatisfactionTasks = completedTasks.filter(t => t.satisfactionLevel <= 2).length;
+      
+      return {
+        resistancePattern: highResistanceTasks > lowResistanceTasks ? 'high' : 'low',
+        punctualityPattern: onTimeTasks > delayedTasks ? 'punctual' : 'delayed',
+        satisfactionPattern: highSatisfactionTasks > lowSatisfactionTasks ? 'satisfied' : 'unsatisfied',
+        highResistancePercent: (highResistanceTasks / completedTasks.length * 100).toFixed(1),
+        onTimePercent: (onTimeTasks / completedTasks.length * 100).toFixed(1),
+        highSatisfactionPercent: (highSatisfactionTasks / completedTasks.length * 100).toFixed(1)
+      };
+    }
+
+    function analyzeTrends(completedTasks) {
+      if (completedTasks.length < 5) return { trend: 'insufficient_data' };
+      
+      // Sort by creation date
+      const sortedTasks = completedTasks.sort((a, b) => new Date(a.created) - new Date(b.created));
+      const half = Math.floor(sortedTasks.length / 2);
+      const firstHalf = sortedTasks.slice(0, half);
+      const secondHalf = sortedTasks.slice(half);
+      
+      const firstHalfAvgResistance = firstHalf.reduce((sum, t) => sum + t.resistanceLevel, 0) / firstHalf.length;
+      const secondHalfAvgResistance = secondHalf.reduce((sum, t) => sum + t.resistanceLevel, 0) / secondHalf.length;
+      
+      const firstHalfAvgDelay = firstHalf.reduce((sum, t) => sum + (t.startDelay || 0), 0) / firstHalf.length;
+      const secondHalfAvgDelay = secondHalf.reduce((sum, t) => sum + (t.startDelay || 0), 0) / secondHalf.length;
+      
+      const resistanceImprovement = firstHalfAvgResistance - secondHalfAvgResistance;
+      const delayImprovement = firstHalfAvgDelay - secondHalfAvgDelay;
+      
+      let trend = 'stable';
+      if (resistanceImprovement > 0.5 && delayImprovement > 5) {
+        trend = 'improving';
+      } else if (resistanceImprovement < -0.5 && delayImprovement < -5) {
+        trend = 'declining';
+      }
+      
+      return {
+        trend,
+        resistanceChange: resistanceImprovement,
+        delayChange: delayImprovement
+      };
+    }
+
+    function generateOverallHTML(stats, patterns, trends) {
+      let overallAssessment = '';
+      let detailedInsights = '';
+      
+      // Overall assessment
+      if (stats.completionRate >= 75 && stats.avgResistance <= 2.5 && stats.avgDelay <= 10) {
+        overallAssessment = '🎆 Exceptional performer! You\'ve mastered task management and self-discipline.';
+      } else if (stats.completionRate >= 60 && stats.avgResistance <= 3.5) {
+        overallAssessment = '👍 Strong performer! You\'re building excellent habits and consistency.';
+      } else if (stats.completionRate >= 40) {
+        overallAssessment = '💪 Developing well! You\'re on the right track with room for growth.';
+      } else {
+        overallAssessment = '🌱 Early stages! Focus on building small, consistent habits first.';
+      }
+      
+      // Detailed pattern analysis
+      detailedInsights += `🔍 <strong>Pattern Analysis:</strong><br>`;
+      detailedInsights += `• You start tasks on time ${patterns.onTimePercent}% of the time<br>`;
+      detailedInsights += `• High resistance occurs in ${patterns.highResistancePercent}% of tasks<br>`;
+      detailedInsights += `• High satisfaction achieved in ${patterns.highSatisfactionPercent}% of completed tasks<br><br>`;
+      
+      // Trend analysis
+      if (trends.trend === 'improving') {
+        detailedInsights += `📈 <strong>Excellent news!</strong> You\'re improving over time. Resistance decreased by ${trends.resistanceChange.toFixed(1)} points and delays reduced by ${trends.delayChange.toFixed(1)} minutes on average.<br><br>`;
+      } else if (trends.trend === 'declining') {
+        detailedInsights += `📉 <strong>Attention needed:</strong> Recent performance shows increased resistance (+${Math.abs(trends.resistanceChange).toFixed(1)}) and delays (+${Math.abs(trends.delayChange).toFixed(1)} min). Consider reassessing your approach.<br><br>`;
+      } else {
+        detailedInsights += `📊 <strong>Steady progress:</strong> You\'re maintaining consistent performance levels. Look for opportunities to optimize further.<br><br>`;
+      }
+      
+      // Personalized recommendations
+      let recommendations = '🎯 <strong>Personalized Action Plan:</strong><br>';
+      if (patterns.resistancePattern === 'high') {
+        recommendations += '• Try the "2-minute rule" - commit to just 2 minutes when resistance is high<br>';
+      }
+      if (patterns.punctualityPattern === 'delayed') {
+        recommendations += '• Set calendar reminders 15 minutes before planned start times<br>';
+      }
+      if (patterns.satisfactionPattern === 'unsatisfied') {
+        recommendations += '• Review task complexity - consider breaking large tasks into smaller wins<br>';
+      }
+      
+      return `
+        <div style="margin-top: 20px;">
+          <h4>📈 Overall Progress Analysis</h4>
+          
+          <div class="metrics-grid" style="margin: 20px 0;">
+            <div class="metric">
+              <div class="metric-value">${stats.completionRate.toFixed(1)}%</div>
+              <div class="metric-label">Overall Completion</div>
+            </div>
+            <div class="metric">
+              <div class="metric-value">${stats.avgDelay.toFixed(1)}</div>
+              <div class="metric-label">Avg Delay (min)</div>
+            </div>
+            <div class="metric">
+              <div class="metric-value">${stats.avgResistance.toFixed(1)}</div>
+              <div class="metric-label">Avg Resistance</div>
+            </div>
+            <div class="metric">
+              <div class="metric-value">${stats.avgSatisfaction.toFixed(1)}</div>
+              <div class="metric-label">Avg Satisfaction</div>
+            </div>
+            <div class="metric">
+              <div class="metric-value">${Math.floor(stats.totalTime / 60)}h ${stats.totalTime % 60}m</div>
+              <div class="metric-label">Total Time</div>
+            </div>
+            <div class="metric">
+              <div class="metric-value">${stats.completedTasks}</div>
+              <div class="metric-label">Tasks Completed</div>
+            </div>
+          </div>
+          
+          <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin: 15px 0;">
+            <h5>🎆 Overall Assessment</h5>
+            <p>${overallAssessment}</p>
+          </div>
+          
+          <div style="background: #e8f5e8; padding: 20px; border-radius: 10px; margin: 15px 0;">
+            <h5>🔍 Detailed Insights</h5>
+            <p>${detailedInsights}</p>
+          </div>
+          
+          <div style="background: #e3f2fd; padding: 20px; border-radius: 10px;">
+            <h5>💡 Action Plan</h5>
+            <p>${recommendations}</p>
+          </div>
+        </div>
+      `;
+    }
+  </script>
+</body>
+</html>
